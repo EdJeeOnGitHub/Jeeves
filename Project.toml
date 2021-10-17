@@ -1,0 +1,15 @@
+name = "Jeeves"
+uuid = "31b37a72-cade-4888-b6da-75864a7b4789"
+authors = ["= <edjee96@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
+
+[compat]
+julia = "^1"
