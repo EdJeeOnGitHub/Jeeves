@@ -12,3 +12,4 @@
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://EdJeeOnGitHub.github.io/Jeeves.jl/stable)
 [![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://EdJeeOnGitHub.github.io/Jeeves.jl/dev)
 -->
+Julia Estimators, Ed's Versions. Extremely Scuffed.
