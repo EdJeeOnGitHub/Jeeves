@@ -4,8 +4,13 @@ struct vcovIID <: vcov
 end
 
 struct vcovCluster <: vcov
-    cluster::Vector
+    cluster::Matrix
 end
+
+# Do this
+# http://cameron.econ.ucdavis.edu/research/CGM_twoway_ALL_13may2008.pdf
+
+
 
 function findBcluster(cluster_var::Vector, X::Matrix, resid::Vector)
     unique_clusters = unique(cluster_var)
