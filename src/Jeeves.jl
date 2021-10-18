@@ -1,5 +1,5 @@
 module Jeeves
-    using LinearAlgebra
+    using LinearAlgebra, Combinatorics
 
 
 
@@ -13,5 +13,6 @@ module Jeeves
 
     include("model.jl")
     include("vcov.jl")
+    include("vcovCluster.jl")
     include("ols.jl")
 end # module
