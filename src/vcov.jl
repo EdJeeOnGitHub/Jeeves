@@ -42,8 +42,8 @@ end
 
 function se(resid::Vector, fit::Model, vcov::vcovCluster)
     cluster_var = vcov.cluster
-    y, X, β, R = fit.y, fit.X, fit.β, fit.R
-    resid = y - X*β 
+    X, R =  fit.X, fit.R
+
     B_hat = findBcluster(cluster_var, X, resid)
 
     XX_inv = inv(cholesky(R' * R))
