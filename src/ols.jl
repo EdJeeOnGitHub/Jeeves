@@ -23,12 +23,15 @@ struct OLSModel <: LinearModel
     y::Vector
     X::Matrix
     vcov::vcov
+    Q::Matrix
+    R::Matrix
     # Default standard errors homoscedastic
-    function OLSModel(y::Vector, X::Matrix; vcov::vcov = vcov(:iid))
+    function OLSModel(y::Vector, X::Matrix; vcov::vcov = vcovIID)
         n = size(X, 1)
         length(y) == n || error("y and x have differing numbers
         of observations.")
-        new(y, X, vcov)
+        Q, R = qr(X)
+        new(y, X, vcov, Q, R)
     end
 end
 
@@ -44,6 +47,8 @@ struct FittedOLSModel <: LinearModelFit
     y::Vector
     X::Matrix
     vcov::vcov
+    Q::Matrix
+    R::Matrix
     modelfit::FitOutput
 end
 
@@ -57,20 +62,19 @@ Use the QR decomposition to estimate y = X β and return FitOutput.
 function fit!(model::OLSModel)
     y = model.y
     X = model.X
-    n = length(y)
-    k = size(X, 2)
     # QR decomposition for numerical stability
-    Q, R = qr(X)
+    Q = model.Q
+    R = model.R
     # Find beta
     β = inv(R) * Q' * y 
     # SEs
-    resid = y - X * β
-    σ_sq = sum(resid.^2) / (n - k)
-    vcov_matrix = inv(cholesky(R' * R)) * σ_sq
-    se_β = sqrt.(diag(vcov_matrix)) 
-
+    resid = y - X*β
+    se_β, σ_sq, vcov_matrix = se(resid, model, model.vcov)
     return FitOutput(β, se_β, resid, σ_sq, vcov_matrix)
 end  
+
+
+
 
 """
     fit(model::OLSModel)
@@ -78,7 +82,13 @@ end
 Instead of returning FitOutput, returns a FittedOLSModel.
 """
 function fit(model::OLSModel)
-    FittedOLSModel(model.y, model.X, model.vcov, fit!(model))
+    FittedOLSModel(
+        model.y, 
+        model.X, 
+        model.vcov, 
+        model.Q, 
+        model.R,
+        fit!(model))
 end
 
 
