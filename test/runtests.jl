@@ -9,7 +9,7 @@ rtol = 0.0001
     y = X*β
     
     
-    my_model = Jeeves.OLSModel(y, X, vcov = Jeeves.vcov(:iid))
+    my_model = Jeeves.OLSModel(y, X, vcov = Jeeves.vcovIID())
     
     fitted_model = fit(my_model)
     model_coefs = coef(fitted_model)
