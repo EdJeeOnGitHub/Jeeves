@@ -1,5 +1,6 @@
 abstract type Model end
 abstract type LinearModel <: Model  end
+abstract type GeneralisedLinearModel <: Model end
 abstract type DoesThomasEvenReadThis <: Model end
 
 abstract type Fit end
