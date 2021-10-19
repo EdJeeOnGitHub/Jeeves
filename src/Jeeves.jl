@@ -1,6 +1,6 @@
 module Jeeves
     using LinearAlgebra, Combinatorics
-
+    using Optim, Distributions
 
 
     export fit
@@ -15,4 +15,7 @@ module Jeeves
     include("vcov.jl")
     include("vcovCluster.jl")
     include("ols.jl")
+    include("tsls.jl")
+    include("probit.jl")
+
 end # module
