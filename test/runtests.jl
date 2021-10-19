@@ -20,6 +20,22 @@ rtol = 0.0001
     @test isapprox(model_coefs[5], β[5], rtol = rtol)
 end
 
+@testset "OLS perfect fit, default vcov" begin
+    X = rand(1_000, 5)
+    β = [ 1; 2; 3; 4; 5]
+    y = X*β
+    
+    
+    my_model = Jeeves.OLSModel(y, X)
+    
+    fitted_model = fit(my_model)
+    model_coefs = coef(fitted_model)
+    @test isapprox(model_coefs[1], β[1], rtol = rtol)
+    @test isapprox(model_coefs[2], β[2], rtol = rtol)
+    @test isapprox(model_coefs[3], β[3], rtol = rtol)
+    @test isapprox(model_coefs[4], β[4], rtol = rtol)
+    @test isapprox(model_coefs[5], β[5], rtol = rtol)
+end
 
 @testset "Clustered SEs" begin
     
@@ -40,5 +56,16 @@ end
 
     using Jeeves
     test_clust = Jeeves.vcovCluster(cluster_matrix)
-    createRset(test_clust)
+    Rset = Jeeves.createRset(test_clust)
+
+    test_clust.cluster
+    function indicator_R(cluster_obj::vcovCluster, R)
+        R = Rset[2]
+        index_thin = findall(R .== 1)
+        unique(cluster_matrix[:, index_thin]) 
+
+    end
+
+
+
 end
