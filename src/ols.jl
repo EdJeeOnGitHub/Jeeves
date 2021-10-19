@@ -26,7 +26,7 @@ struct OLSModel <: LinearModel
     Q::Matrix
     R::Matrix
     # Default standard errors homoscedastic
-    function OLSModel(y::Vector, X::Matrix; vcov::vcov = vcovIID)
+    function OLSModel(y::Vector, X::Matrix; vcov::vcov = vcovIID())
         n = size(X, 1)
         length(y) == n || error("y and x have differing numbers
         of observations.")

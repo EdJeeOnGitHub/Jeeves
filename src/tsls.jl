@@ -9,7 +9,7 @@ struct TSLSModel <: LinearModel
     Q_Z::Matrix
     R_Z::Matrix
     vcov::vcov
-    function TSLSModel(y::Vector, X_endog::Matrix, X_exog::Matrix, Z::Matrix; vcov::vcov = vcovIID)
+    function TSLSModel(y::Vector, X_endog::Matrix, X_exog::Matrix, Z::Matrix; vcov::vcov = vcovIID())
        Q_Z, R_Z = qr(Z)
        new(y, X_endog, X_exog, Z, vcov, Q_Z, R_Z) 
     end
