@@ -122,29 +122,11 @@ function mat_posdef_fix(X::Matrix; tol = 1e-10)
 end
 
 
-function inference(fit::Fit, vcov::vcovCluster)
-    X, R = fit.X, fit.R
-    cluster_matrix = vcov.cluster
-    XX_inv = inv(cholesky(R' * R))
-    resid = fit.modelfit.resid
-    N = fit.N
-    n_cluster_vars = size(cluster_matrix, 2)
-    if n_cluster_vars == 1
-        B_tilde = findsinglecluster(cluster_matrix[:], X, resid)
-    else 
-        Rset = createRset(vcov)
-        indicators = I_R.(Rset)
-        B_tilde = createBtilde(X, resid, N, cluster_matrix, indicators)
-    end
 
-    vcov_matrix = XX_inv * B_tilde * XX_inv
-    vcov_matrix = mat_posdef_fix(vcov_matrix)
-    se = sqrt.(diag(vcov_matrix))
-    pval = 2 .* cdf.(TDist(fit.N - fit.K), -abs.(fit.modelfit.β ./ se))   
-    return se, pval, fit.modelfit.σ_sq, vcov_matrix
-end
 
-# TODO make one of these functions call the over so we're not repeating everything
+# Inference for a model object of type model that hasn't necessarily been 
+# 'converted' to a fitted model object yet but we have resids and betas - 
+# used inside fit
 function inference(resid::Vector, β::Vector, fit::Model, vcov::vcovCluster)
     X, R = fit.X, fit.R
     N = fit.N
@@ -171,3 +153,9 @@ function inference(resid::Vector, β::Vector, fit::Model, vcov::vcovCluster)
 end
 
 
+# Method dispatch on a fitted model
+function inference(fit::Fit, vcov::vcovCluster)
+   resid = fit.modelfit.resid
+   β = fit.modelfit.β
+   return inference(resid, β, fit, vcov) 
+end

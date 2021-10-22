@@ -27,14 +27,21 @@ end
     
     
     my_model = Jeeves.OLSModel(y, X)
-    
     fitted_model = fit(my_model)
+    inference = Jeeves.inference(fitted_model, vcovIID())
+    SEs = inference[1]
     model_coefs = coef(fitted_model)
     @test isapprox(model_coefs[1], β[1], rtol = rtol)
     @test isapprox(model_coefs[2], β[2], rtol = rtol)
     @test isapprox(model_coefs[3], β[3], rtol = rtol)
     @test isapprox(model_coefs[4], β[4], rtol = rtol)
     @test isapprox(model_coefs[5], β[5], rtol = rtol)
+
+    @test isless(SEs[1], 1e-10)
+    @test isless(SEs[2], 1e-10)
+    @test isless(SEs[3], 1e-10)
+    @test isless(SEs[4], 1e-10)
+    @test isless(SEs[5], 1e-10)
 end
 
 rtol = 0.0001
