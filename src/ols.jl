@@ -32,23 +32,30 @@ struct OLSModel <: LinearModel
     vcov::vcov
     Q::Matrix # TODO: Create a lighweight version that doesn't carry data 
     R::Matrix
+    X_names::Vector
     # Default standard errors homoscedastic
     function OLSModel(y::Vector, 
                       X::Matrix; 
-                      vcov::vcov = vcovIID())
+                      vcov::vcov = vcovIID(),
+                      X_names = nothing)
         n = size(X, 1)
         length(y) == n || error("y and x have differing numbers
         of observations.")
         Q, R = qr(X)
-        new(y, X, vcov, Q, R)
+
+        if isnothing(X_names)
+            X_names = "x_" .* string.(1:size(X, 2))
+        end
+        new(y, X, vcov, Q, R, X_names)
     end
 end
 
 
 # Adding DataFrames functionality
 function OLSModel(y::Vector, X::DataFrame; vcov::vcov = vcovIID())
+    X_names = names(X)
     X = Matrix(X) # Backcompability warning requires Juila > 0.7
-    return OLSModel(y, X, vcov = vcov)
+    return OLSModel(y, X, vcov = vcov, X_names = X_names)
 end
 
 mutable struct FitOutput
@@ -65,6 +72,7 @@ struct FittedOLSModel <: LinearModelFit
     vcov::vcov
     Q::Matrix
     R::Matrix
+    X_names::Vector
     modelfit::FitOutput
 end
 
@@ -104,6 +112,7 @@ function fit(model::OLSModel)
         model.vcov, 
         model.Q, 
         model.R,
+        model.X_names,
         fit!(model))
 end
 
