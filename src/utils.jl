@@ -40,7 +40,7 @@ function tidy(model_list::Vector{FittedOLSModel}, model_name::Vector)
     tidy_model_list = Vector{DataFrame}(undef, length(model_list)) 
     for i in 1:length(model_list)
         df = tidy(model_list[i])
-        df[!, "model"] = model_name[i]
+        df[!, "model"] .= model_name[i]
         tidy_model_list[i] =  df
     end
     tidy_df = reduce(vcat, tidy_model_list)
