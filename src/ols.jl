@@ -33,20 +33,23 @@ struct OLSModel <: LinearModel
     Q::Matrix # TODO: Create a lighweight version that doesn't carry data 
     R::Matrix
     X_names::Vector
+    N::Float64
+    K::Float64
     # Default standard errors homoscedastic
     function OLSModel(y::Vector, 
                       X::Matrix; 
                       vcov::vcov = vcovIID(),
                       X_names = nothing)
-        n = size(X, 1)
-        length(y) == n || error("y and x have differing numbers
+        N = size(X, 1)
+        K = size(X, 2)
+        length(y) == N || error("y and x have differing numbers
         of observations.")
         Q, R = qr(X)
 
         if isnothing(X_names)
             X_names = "x_" .* string.(1:size(X, 2))
         end
-        new(y, X, vcov, Q, R, X_names)
+        new(y, X, vcov, Q, R, X_names, N, K)
     end
 end
 
@@ -61,6 +64,7 @@ end
 mutable struct FitOutput
     β::Vector
     se_β::Vector
+    pval::Vector
     resid::Vector
     σ_sq::Float64
     vcov_matrix::Matrix
@@ -73,6 +77,8 @@ struct FittedOLSModel <: LinearModelFit
     Q::Matrix
     R::Matrix
     X_names::Vector
+    N::Float64
+    K::Float64
     modelfit::FitOutput
 end
 
@@ -93,8 +99,8 @@ function fit!(model::OLSModel)
     β = inv(R) * Q' * y 
     # SEs
     resid = y - X*β
-    se_β, σ_sq, vcov_matrix = se(resid, model, model.vcov)
-    return FitOutput(β, se_β, resid, σ_sq, vcov_matrix)
+    se_β, pval, σ_sq, vcov_matrix = inference(resid, model, model.vcov)
+    return FitOutput(β, se_β, pval, resid, σ_sq, vcov_matrix)
 end  
 
 
@@ -113,6 +119,8 @@ function fit(model::OLSModel)
         model.Q, 
         model.R,
         model.X_names,
+        model.N,
+        model.K,
         fit!(model))
 end
 

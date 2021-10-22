@@ -22,12 +22,14 @@ function tidy(fit::Jeeves.FittedOLSModel)
     X_names = fit.X_names
     β = fit.modelfit.β
     se_β = fit.modelfit.se_β
+    pval = fit.modelfit.pval
     df = DataFrame(
         term = X_names,
         β = β,
         se_β = se_β,
-        t_stat = β ./ se_β
-    )
+        t_stat = β ./ se_β,
+        pval    
+        )
     return df
 end
 

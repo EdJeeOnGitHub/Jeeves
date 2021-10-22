@@ -4,21 +4,23 @@ struct vcovIID <: vcov
 end
 
 
-function se(fit::Fit, vcov::vcovIID)
+function inference(fit::Fit, vcov::vcovIID)
     R = fit.R
     σ_sq = fit.modelfit.σ_sq
     vcov_matrix = inv(cholesky(R' * R)) * σ_sq
     se = sqrt.(diag(vcov_matrix)) 
-    return se, σ_sq, vcov_matrix
+    pval = 2 .* cdf.(TDist(fit.N - fit.K), -abs.(fit.modelfit.β ./ se))   
+    return se, pval, σ_sq, vcov_matrix
 end
 
-function se(resid::Vector, fit::Model, vcov::vcovIID)
+function inference(resid::Vector, fit::Model, vcov::vcovIID)
     y, X, R = fit.y, fit.X, fit.R
-    n = length(y)
-    k = size(X, 2)
+    N = fit.N
+    K = fit.K
 
-    σ_sq = sum(resid.^2) / (n - k)
+    σ_sq = sum(resid.^2) / (N - K)
     vcov_matrix = inv(cholesky(R' * R)) * σ_sq
     se = sqrt.(diag(vcov_matrix)) 
-    return se, σ_sq, vcov_matrix
+    pval = 2 .* cdf.(TDist(fit.N - fit.K), -abs.(fit.modelfit.β ./ se))   
+    return se, pval, σ_sq, vcov_matrix
 end
