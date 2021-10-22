@@ -19,20 +19,36 @@ We separate OLSModel {LinearModel} from its fitted counterpart FittedOLSModel
 
 
 
+"""
+    OLSModel <: LinearModel
+
+Object describing data and variance covariance matrix to be computed using an 
+Ordinary Least Squares Model. Q, R are the QR decomposition pre-calculated and 
+carried around by OLSModel.
+"""
 struct OLSModel <: LinearModel
     y::Vector
     X::Matrix
     vcov::vcov
-    Q::Matrix
+    Q::Matrix # TODO: Create a lighweight version that doesn't carry data 
     R::Matrix
     # Default standard errors homoscedastic
-    function OLSModel(y::Vector, X::Matrix; vcov::vcov = vcovIID())
+    function OLSModel(y::Vector, 
+                      X::Matrix; 
+                      vcov::vcov = vcovIID())
         n = size(X, 1)
         length(y) == n || error("y and x have differing numbers
         of observations.")
         Q, R = qr(X)
         new(y, X, vcov, Q, R)
     end
+end
+
+
+# Adding DataFrames functionality
+function OLSModel(y::Vector, X::DataFrame; vcov::vcov = vcovIID())
+    X = Matrix(X) # Backcompability warning requires Juila > 0.7
+    return OLSModel(y, X, vcov = vcov)
 end
 
 mutable struct FitOutput
