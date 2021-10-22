@@ -49,3 +49,30 @@ function tidy(model_list::Vector{FittedOLSModel}, model_names::Vector)
     tidy_df = reduce(vcat, tidy_model_list)
     return tidy_df
 end
+
+
+
+function TableCol(header, m::FittedOLSModel;
+                  stats=(:N=>Int∘nobs, "\$R^2\$"=>r2),
+                  meta=(), kwargs...)
+
+    # Initialize the column
+    col  = RegCol(header)
+
+    # Add the coefficients
+    for (name, val, se, p) in zip(m.X_names, coef(m), m.modelfit.se_β, m.modelfit.pval)
+        addcoef!(col, name, val, se)
+        0.05 <  p <= .1  && star!(col[name], 1)
+        0.01 <  p <= .05 && star!(col[name], 2)
+                p <= .01 && star!(col[name], 3)
+    end
+
+    # Add in the fit statistics
+    addstats!(col, OrderedDict(p.first=>p.second(m) for p in stats))
+
+    # Add in the metadata
+    addmeta!(col, OrderedDict(p.first=>p.second(m) for p in meta))
+
+    return col
+
+end

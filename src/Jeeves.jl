@@ -2,7 +2,8 @@ module Jeeves
     using LinearAlgebra, Combinatorics
     using Optim, Distributions
     using DataFrames: DataFrame
-
+    using TexTables
+    
     export fit
     export fit!
     export coef
