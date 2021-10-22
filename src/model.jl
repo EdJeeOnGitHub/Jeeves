@@ -18,8 +18,8 @@ function summary(model::Fit)
 
 end
 
-nobs(m::FittedOLSModel) = m.N
-r2(m::FittedOLSModel) = "TODO"
+nobs(m::LinearModelFit) = m.N
+r2(m::LinearModelFit) = "TODO"
 """
     coef(model::Fit)
 For now just returns β coefs.
