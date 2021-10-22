@@ -7,7 +7,7 @@ module Jeeves
     export fit!
     export coef
     export summary
-
+    export tidy
 
 
 
