@@ -28,7 +28,7 @@ function tidy(fit::Jeeves.FittedOLSModel)
         β = β,
         se_β = se_β,
         t_stat = β ./ se_β,
-        pval    
+        p_val = pval    
         )
     return df
 end
