@@ -17,5 +17,5 @@ module Jeeves
     include("ols.jl")
     include("tsls.jl")
     include("probit.jl")
-
+    include("utils.jl")
 end # module
