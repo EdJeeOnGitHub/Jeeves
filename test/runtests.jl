@@ -55,35 +55,24 @@ rtol = 0.0001
     @test isapprox(model_coefs[5], β[5], rtol = rtol)
 end
 
-# @testset "Clustered SEs" begin
-    
-#     cluster_var_1 = repeat(["Kentucky", "Mass", "Illinois", "Florida"], 100) 
-#     cluster_var_2 = repeat(["t_1", "t_2", "t_3", "t_4", "t_5"], 80)
-#     cluster_var_3 = repeat(["village_1", "village_2"], 200)
+# Literally just testing if we get an answer at this stage lol...
+@testset "Clustered SEs" begin
+    N = 400   
+    cluster_var_1 = repeat(["Kentucky", "Mass", "Illinois", "Florida"], Int(N/4)) 
+    cluster_var_2 = repeat(["t_1", "t_2", "t_3", "t_4", "t_5"],Int(N/5))
+    cluster_var_3 = repeat(1:50, Int(N/50))
 
-#     using Random
-#     cluster_matrix = Matrix(hcat(shuffle(cluster_var_1), shuffle(cluster_var_2), shuffle(cluster_var_3)))
-#     cluster_matrix
+    using Random
+    cluster_matrix = Matrix(hcat(shuffle(cluster_var_1), 
+                                 shuffle(cluster_var_2)))
 
-#     X = randn(400, 5)
-#     ϵ = randn(400, 1)
-#     β = [1, 2, 3, 4, 5]
-#     y = X * β    + ϵ
+    X = randn(N, 5)
+    ϵ = randn(N, 1)
+    β = [1, 2, 3, 4, 5]
+    y = X * β    + ϵ
 
-#     unique(cluster_matrix)
-
-#     using Jeeves
-#     test_clust = Jeeves.vcovCluster(cluster_matrix)
-#     Rset = Jeeves.createRset(test_clust)
-
-#     test_clust.cluster
-#     function indicator_R(cluster_obj::vcovCluster, R)
-#         R = Rset[2]
-#         index_thin = findall(R .== 1)
-#         unique(cluster_matrix[:, index_thin]) 
-
-#     end
-
-
-
-# end
+    model = Jeeves.OLSModel(y[:], X)
+    model_fit = fit(model)
+    SEs = Jeeves.inference(model_fit, Jeeves.vcovCluster(cluster_matrix))
+    @test typeof(SEs[1]) == Vector{Float64}
+end
