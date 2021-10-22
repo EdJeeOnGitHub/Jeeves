@@ -33,8 +33,8 @@ struct OLSModel <: LinearModel
     Q::Matrix # TODO: Create a lighweight version that doesn't carry data 
     R::Matrix
     X_names::Vector
-    N::Float64
-    K::Float64
+    N::Int64
+    K::Int64
     # Default standard errors homoscedastic
     function OLSModel(y::Vector, 
                       X::Matrix; 
@@ -77,8 +77,8 @@ struct FittedOLSModel <: LinearModelFit
     Q::Matrix
     R::Matrix
     X_names::Vector
-    N::Float64
-    K::Float64
+    N::Int64
+    K::Int64
     modelfit::FitOutput
 end
 
