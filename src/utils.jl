@@ -31,9 +31,13 @@ function tidy(fit::Jeeves.FittedOLSModel)
     return df
 end
 
-
-function tidy(model_list::Vector{FittedOLSModel}, model_name::Vector{String})
-    tidy_model_list = Vector{DataFrames::DataFrame}(undef, length(model_list)) 
+"""
+    tidy(model_list::Vector{FittedOLSModel}, model_name::Vector{String})
+Method dispatch over a list of models and a vector of model identifiers
+so we can just tidy over multiple broadcasted models.
+"""
+function tidy(model_list::Vector{FittedOLSModel}, model_name::Vector)
+    tidy_model_list = Vector{DataFrame}(undef, length(model_list)) 
     for i in 1:length(model_list)
         df = tidy(model_list[i])
         df[!, "model"] = model_name[i]
