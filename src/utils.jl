@@ -30,3 +30,15 @@ function tidy(fit::Jeeves.FittedOLSModel)
     )
     return df
 end
+
+
+function tidy(model_list::Vector{FittedOLSModel}, model_name::Vector{String})
+    tidy_model_list = Vector{DataFrames::DataFrame}(undef, length(model_list)) 
+    for i in 1:length(model_list)
+        df = tidy(model_list[i])
+        df[!, "model"] = model_name[i]
+        tidy_model_list[i] =  df
+    end
+    tidy_df = reduce(vcat, tidy_model_list)
+    return tidy_df
+end
