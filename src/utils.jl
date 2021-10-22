@@ -52,7 +52,7 @@ end
 
 
 
-function TableCol(header, m::FittedOLSModel;
+function TableCol(header, m::LinearModelFit;
                   stats=(:N=>Int∘nobs, "\$R^2\$"=>r2),
                   meta=(), kwargs...)
 
