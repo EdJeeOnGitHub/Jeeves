@@ -99,7 +99,7 @@ function fit!(model::OLSModel)
     β = inv(R) * Q' * y 
     # SEs
     resid = y - X*β
-    se_β, pval, σ_sq, vcov_matrix = inference(resid, model, model.vcov)
+    se_β, pval, σ_sq, vcov_matrix = inference(resid, β, model, model.vcov)
     return FitOutput(β, se_β, pval, resid, σ_sq, vcov_matrix)
 end  
 
