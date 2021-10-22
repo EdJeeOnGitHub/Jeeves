@@ -10,7 +10,7 @@ module Jeeves
     export summary
     export tidy
 
-
+    export vcovIID, vcovCluster
 
     include("model.jl")
     include("vcov.jl")
