@@ -8,8 +8,28 @@ struct vcovCluster <: vcov
     end
 end
 
-# Do this
-# http://cameron.econ.ucdavis.edu/research/CGM_twoway_ALL_13may2008.pdf
+
+"""
+    findsinglecluster(cluster_var::Vector, X::Matrix, resid::Vector)
+If there's a single cluster variable this is a much quicker implementation.
+"""
+function findsinglecluster(cluster_var::Vector, X::Matrix, resid::Vector)
+    unique_clusters = unique(cluster_var)
+    n_clusters = length(unique(cluster_var))
+    B_clusters = Vector{Matrix{Float64}}(undef, n_clusters)
+    N, K = size(X, 1), size(X, 2)
+    dof_adjustment = (n_clusters/(n_clusters - 1))*((N-1)/(N-K))
+    for i in 1:n_clusters
+        cluster_index = findall(cluster_var .== unique_clusters[i])
+        X_cl = X[cluster_index, :]
+        resid_cl = resid[cluster_index, :]
+        B_cl = X_cl' * resid_cl * resid_cl' * X_cl
+        B_clusters[i] = B_cl*dof_adjustment
+    end
+    B_hat = reduce(+, B_clusters)
+    return B_hat
+end
+
 
 function findclusterid(cluster_var)
     cluster_id_dict = Dict(unique(cluster_var) .=> 1:length(unique(cluster_var)))
@@ -94,7 +114,7 @@ Proposed by Cameron, Gelbach, Miller (2011).
 """
 function mat_posdef_fix(X::Matrix; tol = 1e-10)
     if any(diag(X) .< tol)
-        e_vals, e_vecs = eigen(X)
+        e_vals, e_vecs = eigen(Symmetric(X))
         e_vals[e_vals .<= tol] .= tol
         X = e_vecs * Diagonal(e_vals) * e_vecs'
     end
@@ -105,40 +125,43 @@ end
 function inference(fit::Fit, vcov::vcovCluster)
     X, R = fit.X, fit.R
     cluster_matrix = vcov.cluster
-    Rset = createRset(vcov)
-
-    indicators = I_R.(Rset)
-    N = fit.N
-
     XX_inv = inv(cholesky(R' * R))
     resid = fit.modelfit.resid
-
-    B_tilde = createBtilde(X, resid, N, cluster_matrix, indicators)
+    N = fit.N
+    n_cluster_vars = size(cluster_matrix, 2)
+    if n_cluster_vars == 1
+        B_tilde = findsinglecluster(cluster_matrix[:], X, resid)
+    else 
+        Rset = createRset(vcov)
+        indicators = I_R.(Rset)
+        B_tilde = createBtilde(X, resid, N, cluster_matrix, indicators)
+    end
 
     vcov_matrix = XX_inv * B_tilde * XX_inv
     vcov_matrix = mat_posdef_fix(vcov_matrix)
     se = sqrt.(diag(vcov_matrix))
-
     pval = 2 .* cdf.(TDist(fit.N - fit.K), -abs.(fit.modelfit.β ./ se))   
     return se, pval, fit.modelfit.σ_sq, vcov_matrix
 end
 
-
+# TODO make one of these functions call the over so we're not repeating everything
 function inference(resid::Vector, β::Vector, fit::Model, vcov::vcovCluster)
     X, R = fit.X, fit.R
-    cluster_matrix = vcov.cluster
-    Rset = createRset(vcov)
-
-    indicators = I_R.(Rset)
     N = fit.N
     K = fit.K
-
+    cluster_matrix = vcov.cluster
     XX_inv = inv(cholesky(R' * R))
 
-    B_tilde = createBtilde(X, resid, N, cluster_matrix, indicators)
+    n_cluster_vars = size(cluster_matrix, 2)
+    if n_cluster_vars == 1
+        B_tilde = findsinglecluster(cluster_matrix[:], X, resid)
+    else 
+        Rset = createRset(vcov)
+        indicators = I_R.(Rset)
+        B_tilde = createBtilde(X, resid, N, cluster_matrix, indicators)
+    end
 
     vcov_matrix = XX_inv * B_tilde * XX_inv
-
     vcov_matrix = mat_posdef_fix(vcov_matrix)
     se = sqrt.(diag(vcov_matrix))
 
