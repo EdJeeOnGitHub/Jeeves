@@ -12,11 +12,24 @@ module Jeeves
 
     export vcovIID, vcovCluster
 
+    ## Types ##
+    abstract type Model end
+    abstract type LinearModel <: Model  end
+    abstract type GeneralisedLinearModel <: Model end
+
+
+    abstract type Fit <: Model end
+    abstract type LinearModelFit <: Fit end
+
+
+    abstract type vcov end
+
+    ## Modules ##
     include("model.jl")
-    include("vcov.jl")
-    include("vcovCluster.jl")
     include("ols.jl")
     include("tsls.jl")
     include("probit.jl")
+    include("vcov.jl")
+    include("vcovCluster.jl")
     include("utils.jl")
 end # module

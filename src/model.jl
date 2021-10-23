@@ -1,13 +1,3 @@
-abstract type Model end
-
-abstract type LinearModel <: Model  end
-abstract type GeneralisedLinearModel <: Model end
-abstract type DoesThomasEvenReadThis <: Model end
-
-abstract type Fit <: Model end
-abstract type LinearModelFit <: Fit end
-
-
 function summary(model::Fit)
     nobs = length(model.y)
     vcov = model.vcov

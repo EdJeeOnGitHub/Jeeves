@@ -10,6 +10,7 @@ Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 TexTables = "ebf5ac4f-3ec1-555f-9ac9-3d72ed88c471"
 
 [compat]

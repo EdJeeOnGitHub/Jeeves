@@ -1,4 +1,4 @@
-using Jeeves
+using Revise, Jeeves
 using DataFrames:DataFrame
 using Test
 
@@ -61,6 +61,30 @@ rtol = 0.0001
     @test isapprox(model_coefs[4], β[4], rtol = rtol)
     @test isapprox(model_coefs[5], β[5], rtol = rtol)
 end
+
+
+
+@testset "TSLS works" begin
+    N = 10_000
+    confounder = randn(N)
+    X_exog = randn(N, 3)
+    X_beta = [1; 2; 3]
+    Z = randn(N, 1)
+    X_endog = randn(N, 1) .+ confounder .+ Z
+    Y = X_exog * X_beta + X_endog + confounder + randn(N, 1)
+    IV_model = Jeeves.TSLSModel(Y[:], X_endog, X_exog, Z)
+    IV_fit = fit(IV_model)
+    separate_inference = Jeeves.inference(IV_fit, vcovIID())
+    model_coefs = coef(IV_fit)
+    @test isapprox(model_coefs[1], 1, rtol = 1e-1)
+    @test isapprox(model_coefs[2], 1, rtol = 1e-1)
+    @test isapprox(model_coefs[3], 2, rtol = 1e-1)
+    @test isapprox(model_coefs[4], 3, rtol = 1e-1)
+end
+
+
+
+
 
 # Literally just testing if we get an answer at this stage lol...
 @testset "Clustered SEs" begin

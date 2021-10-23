@@ -127,7 +127,10 @@ end
 # Inference for a model object of type model that hasn't necessarily been 
 # 'converted' to a fitted model object yet but we have resids and betas - 
 # used inside fit
-function inference(resid::Vector, β::Vector, fit::Model, vcov::vcovCluster)
+function inference(resid::Vector, 
+                   β::Vector, 
+                   fit::Union{LinearModel,LinearModelFit}, 
+                   vcov::vcovCluster)
     X, R = fit.X, fit.R
     N = fit.N
     K = fit.K
@@ -154,7 +157,7 @@ end
 
 
 # Method dispatch on a fitted model
-function inference(fit::Fit, vcov::vcovCluster)
+function inference(fit::FittedOLSModel, vcov::vcovCluster)
    resid = fit.modelfit.resid
    β = fit.modelfit.β
    return inference(resid, β, fit, vcov) 
