@@ -128,8 +128,8 @@ function inference(N::Int,
                    K::Int,
                    resid::Vector, 
                    β::Vector, 
-                   XX_inv,
-                   X,
+                   XX_inv::Matrix,
+                   X::Matrix,
                    vcov::vcovCluster)
     cluster_matrix = vcov.cluster
 
@@ -146,53 +146,8 @@ function inference(N::Int,
     vcov_matrix = mat_posdef_fix(vcov_matrix)
     se = sqrt.(diag(vcov_matrix))
 
-    pval = 2 .* cdf.(TDist(fit.N - fit.K), -abs.(β ./ se))   
+    pval = 2 .* cdf.(TDist(N - K), -abs.(β ./ se))   
     σ_sq = sum(resid.^2) / (N - K)
     return se, pval, σ_sq, vcov_matrix
 end
 
-
-"""
-Dispatch to inference using primitives using model attributes.
-"""
-function inference(resid::Vector, 
-                   β::Vector, 
-                   fit::Union{LinearModel,LinearModelFit}, 
-                   vcov::vcovCluster)
-    XX_inv = inv(cholesky(fit.R' * fit.R))
-    return inference(fit.N, fit.K, resid, β, XX_inv, vcov)
-end
-
-
-# Method dispatch on a fitted model
-function inference(fit::FittedOLSModel, vcov::vcovCluster)
-   resid = fit.modelfit.resid
-   β = fit.modelfit.β
-   return inference(resid, β, fit, vcov) 
-end
-
-# These are actually identical to 
-
-"""
-Clustered Standard Errors, TSLS
-"""
-function inference(resid::Vector, 
-                   β::Vector, 
-                   P_Z::Matrix, 
-                   fit::TSLSModel, 
-                   vcov::vcovCluster)
-    X = fit.X 
-    XX_inv =  inv(X' * P_Z * X)
-    return inference(fit.N, fit.K, resid, β, XX_inv, vcov)
-end
-
-
-"""
-Clustered Standard Errors, TSLS using fitted model
-"""
-function inference(fit::FittedTSLSModel, vcov::vcovCluster)
-    X = fit.X
-    P_Z = fit.P_Z 
-    XX_inv =  inv(X' * P_Z * X)
-    return inference(fit.N, fit.K, fit.modelfit.resid, fit.modelfit.β, XX_inv, vcov)
-end
