@@ -121,21 +121,17 @@ function mat_posdef_fix(X::Matrix; tol = 1e-10)
     return X
 end
 
-
-
-
-# Inference for a model object of type model that hasn't necessarily been 
-# 'converted' to a fitted model object yet but we have resids and betas - 
-# used inside fit
-function inference(resid::Vector, 
+"""
+Clustered Standard errors inference.
+"""
+function inference(N::Int,
+                   K::Int,
+                   resid::Vector, 
                    β::Vector, 
-                   fit::Union{LinearModel,LinearModelFit}, 
+                   XX_inv,
+                   X,
                    vcov::vcovCluster)
-    X, R = fit.X, fit.R
-    N = fit.N
-    K = fit.K
     cluster_matrix = vcov.cluster
-    XX_inv = inv(cholesky(R' * R))
 
     n_cluster_vars = size(cluster_matrix, 2)
     if n_cluster_vars == 1
@@ -156,9 +152,47 @@ function inference(resid::Vector,
 end
 
 
+"""
+Dispatch to inference using primitives using model attributes.
+"""
+function inference(resid::Vector, 
+                   β::Vector, 
+                   fit::Union{LinearModel,LinearModelFit}, 
+                   vcov::vcovCluster)
+    XX_inv = inv(cholesky(fit.R' * fit.R))
+    return inference(fit.N, fit.K, resid, β, XX_inv, vcov)
+end
+
+
 # Method dispatch on a fitted model
 function inference(fit::FittedOLSModel, vcov::vcovCluster)
    resid = fit.modelfit.resid
    β = fit.modelfit.β
    return inference(resid, β, fit, vcov) 
+end
+
+# These are actually identical to 
+
+"""
+Clustered Standard Errors, TSLS
+"""
+function inference(resid::Vector, 
+                   β::Vector, 
+                   P_Z::Matrix, 
+                   fit::TSLSModel, 
+                   vcov::vcovCluster)
+    X = fit.X 
+    XX_inv =  inv(X' * P_Z * X)
+    return inference(fit.N, fit.K, resid, β, XX_inv, vcov)
+end
+
+
+"""
+Clustered Standard Errors, TSLS using fitted model
+"""
+function inference(fit::FittedTSLSModel, vcov::vcovCluster)
+    X = fit.X
+    P_Z = fit.P_Z 
+    XX_inv =  inv(X' * P_Z * X)
+    return inference(fit.N, fit.K, fit.modelfit.resid, fit.modelfit.β, XX_inv, vcov)
 end
