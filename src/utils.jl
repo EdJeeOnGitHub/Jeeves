@@ -14,11 +14,11 @@ function dummy_matrix(df::DataFrame, column)
 end
 
 """
-    tidy(fit::Fit)
+    tidy(fit::LinearModelFit)
 Inspired by R's broom::tidy. Returns a dataframe where each row is a variable
 and its associated estimate.
 """
-function tidy(fit::Fit)
+function tidy(fit::LinearModelFit)
     X_names = fit.X_names
     β = fit.modelfit.β
     se_β = fit.modelfit.se_β
@@ -34,11 +34,11 @@ function tidy(fit::Fit)
 end
 
 """
-    tidy(model_list::Vector{Fit}, model_name::Vector{String})
+    tidy(model_list::Vector{LinearModelFit}, model_name::Vector{String})
 Method dispatch over a list of models and a vector of model identifiers
 so we can just tidy over multiple broadcasted models.
 """
-function tidy(model_list::Vector{Fit}, model_names::Vector)
+function tidy(model_list::Vector{LinearModelFit}, model_names::Vector)
     length(model_list) == length(model_names) || error("Model - Name Dimension Mismatch")
     tidy_model_list = Vector{DataFrame}(undef, length(model_list)) 
     for i in 1:length(model_list)
