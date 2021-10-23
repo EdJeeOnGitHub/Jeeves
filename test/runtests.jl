@@ -82,7 +82,7 @@ end
     @test isapprox(model_coefs[4], 3, rtol = 1e-1)
 end
 
-
+# Kinda hard to test these functions.
 @testset "tidying" begin
     X = rand(1_000, 5)
     β = [ 1; 2; 3; 4; 5]
@@ -94,6 +94,9 @@ end
     single_tidy = tidy(fitted_models[1])
     many_tidy = tidy(fitted_models, collect(1:5))
 
+
+    tex_table = Jeeves.TableCol("ed", fitted_models[1], drop = ["x_1"])
+    @test length(tex_table.data) == 6
     @test typeof(single_tidy) == DataFrame
     @test typeof(many_tidy) == DataFrame
 end
