@@ -18,7 +18,7 @@ end
 Inspired by R's broom::tidy. Returns a dataframe where each row is a variable
 and its associated estimate.
 """
-function tidy(fit::LinearModelFit)
+function tidy(fit::T) where {T <: Fit}
     X_names = fit.X_names
     β = fit.modelfit.β
     se_β = fit.modelfit.se_β
@@ -38,12 +38,26 @@ end
 Method dispatch over a list of models and a vector of model identifiers
 so we can just tidy over multiple broadcasted models.
 """
-function tidy(model_list::Vector{LinearModelFit}, model_names::Vector)
+function tidy(model_list::Vector{T} where {T <: Fit}, model_names::Vector) 
     length(model_list) == length(model_names) || error("Model - Name Dimension Mismatch")
     tidy_model_list = Vector{DataFrame}(undef, length(model_list)) 
     for i in 1:length(model_list)
         df = tidy(model_list[i])
         df[!, "model"] .= model_names[i]
+        tidy_model_list[i] =  df
+    end
+    tidy_df = reduce(vcat, tidy_model_list)
+    return tidy_df
+end
+"""
+    tidy(model_list::Vector{T} where {T <: Fit}) 
+Tidy a list of models and generate model_i names automatically.
+"""
+function tidy(model_list::Vector{T} where {T <: Fit}) 
+    tidy_model_list = Vector{DataFrame}(undef, length(model_list)) 
+    for i in 1:length(model_list)
+        df = tidy(model_list[i])
+        df[!, "model"] .= "model_" * string(i)
         tidy_model_list[i] =  df
     end
     tidy_df = reduce(vcat, tidy_model_list)

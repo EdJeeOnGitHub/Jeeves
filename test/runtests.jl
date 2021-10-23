@@ -83,7 +83,20 @@ end
 end
 
 
+@testset "tidying" begin
+    X = rand(1_000, 5)
+    β = [ 1; 2; 3; 4; 5]
+    y = X*β
+    
+    
+    my_model = broadcast(x -> Jeeves.OLSModel(y, X), 1:5)
+    fitted_models = fit.(my_model)
+    single_tidy = tidy(fitted_models[1])
+    many_tidy = tidy(fitted_models, collect(1:5))
 
+    @test typeof(single_tidy) == DataFrame
+    @test typeof(many_tidy) == DataFrame
+end
 
 
 # Literally just testing if we get an answer at this stage lol...
