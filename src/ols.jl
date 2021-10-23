@@ -57,7 +57,7 @@ end
 # Adding DataFrames functionality
 function OLSModel(y::Vector, X::DataFrame; vcov::vcov = vcovIID())
     X_names = names(X)
-    X = Matrix(X) # Backcompability warning requires Juila > 0.7
+    X = convert_to_matrix(X) # Backcompability warning requires Juila > 0.7
     return OLSModel(y, X, vcov = vcov, X_names = X_names)
 end
 
