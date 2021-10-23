@@ -27,7 +27,10 @@ end
 """
 inference taking β and resid as arguments
 """
-function inference(resid::Vector, β::Vector, fit::Union{LinearModel,LinearModelFit}, vcov::vcovIID)
+function inference(resid::Vector,
+                   β::Vector, 
+                   fit::Union{LinearModel,LinearModelFit}, 
+                   vcov::vcovIID)
     R = fit.R
     N = fit.N
     K = fit.K
