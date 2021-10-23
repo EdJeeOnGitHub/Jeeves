@@ -10,7 +10,7 @@ function summary(model::Fit)
 end
 
 nobs(m::LinearModelFit) = m.N
-r2(m::LinearModelFit) = "TODO"
+r2(m::LinearModelFit) = "."
 """
     coef(model::Fit)
 For now just returns β coefs.

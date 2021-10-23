@@ -66,19 +66,28 @@ end
 
 
 
-function TableCol(header, m::LinearModelFit;
+function TableCol(header, 
+                  m::LinearModelFit;
+                  drop = [""],
+                  keep = [""],
                   stats=(:N=>Int∘nobs, "\$R^2\$"=>r2),
-                  meta=(), kwargs...)
-
+                  meta=())
     # Initialize the column
     col  = RegCol(header)
-
+    keep_used = !(keep == [""])
+    # if we use keep, add everything to drop and remove elements in keep 
+    if keep_used
+        drop = deepcopy(m.X_names)
+        deleteat!(drop,  findall(drop .== keep))
+    end
     # Add the coefficients
     for (name, val, se, p) in zip(m.X_names, coef(m), m.modelfit.se_β, m.modelfit.pval)
-        setcoef!(col, name, val, se)
-        0.05 <  p <= .1  && star!(col[name], 1)
-        0.01 <  p <= .05 && star!(col[name], 2)
-                p <= .01 && star!(col[name], 3)
+        if !(name in drop)
+            setcoef!(col, name, val, se)
+            0.05 <  p <= .1  && star!(col[name], 1)
+            0.01 <  p <= .05 && star!(col[name], 2)
+                    p <= .01 && star!(col[name], 3)
+        end
     end
 
     # Add in the fit statistics
