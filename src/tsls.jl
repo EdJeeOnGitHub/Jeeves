@@ -38,7 +38,7 @@ function TSLSModel(y::Vector,
                     X_exog::DataFrame, 
                     instruments::DataFrame; 
                     vcov::vcov = vcovIID())
-    X_names = vcat(names(instruments), names(X_exog))
+    X_names = vcat(names(X_endog), names(X_exog))
     X_endog = Matrix(X_endog)
     X_exog = Matrix(X_exog)
     instruments = Matrix(instruments)
