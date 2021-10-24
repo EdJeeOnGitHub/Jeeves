@@ -3,6 +3,8 @@ module Jeeves
     using Optim, Distributions
     using DataFrames: DataFrame
     using TexTables, OrderedCollections
+    using RDatasets
+
 
     export fit
     export fit!
