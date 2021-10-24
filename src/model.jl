@@ -9,13 +9,6 @@ function summary(model::Fit)
 
 end
 
-function convert_to_matrix(x)
-    if size(x, 2) == 1
-        return Matrix(reshape(x, :, 1))
-    else
-        return Matrix(x)
-    end
-end
 nobs(m::LinearModelFit) = m.N
 r2(m::LinearModelFit) = "."
 """

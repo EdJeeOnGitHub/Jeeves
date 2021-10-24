@@ -39,18 +39,12 @@ function TSLSModel(y::Vector,
                     instruments::DataFrame; 
                     vcov::vcov = vcovIID())
     X_names = vcat(names(instruments), names(X_exog))
-    X_endog = convert_to_matrix(X_endog)
-    X_exog = convert_to_matrix(X_exog)
-    instruments = convert_to_matrix(instruments)
+    X_endog = Matrix(X_endog)
+    X_exog = Matrix(X_exog)
+    instruments = Matrix(instruments)
     return TSLSModel(y, X_endog, X_exog, instruments, vcov, X_names)
 end
 
-# Adding DataFrames functionality
-function TSLSModel(y::Vector, X_endog::DataFrame; vcov::vcov = vcovIID())
-    X_names = names(X)
-    X = Matrix(X) # Backcompability warning requires Juila > 0.7
-    return OLSModel(y, X, vcov = vcov, X_names = X_names)
-end
 struct FittedTSLSModel <: LinearModelFit
     y::Vector # outcome variable
     X::Matrix # Second stage variables (endog + exog)
