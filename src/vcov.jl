@@ -38,7 +38,7 @@ end
 inference taking β and resid as arguments
 """
 function inference(resid::Vector,
-                   β::Vector, 
+                   β::Vector, # todo change type to OLS?
                    fit::Union{LinearModel,LinearModelFit}, 
                    vcov::vcov)
     R = fit.R
@@ -69,7 +69,7 @@ function inference(resid::Vector,
                    fit::TSLSModel, vcov::vcov)
     X = fit.X 
     XX_inv =  inv(X' * P_Z * X)
-    return inference(fit.N, fit.K, resid, β, XX_inv, X, vcov)
+    return inference(fit.N, fit.K, resid, β, XX_inv, P_Z*X, vcov)
 end
 """
 TSLS using fitted model
@@ -78,5 +78,5 @@ function inference(fit::FittedTSLSModel, vcov::vcov)
     X = fit.X
     P_Z = fit.P_Z 
     XX_inv =  inv(X' * P_Z * X)
-    return inference(fit.N, fit.K, fit.modelfit.resid, fit.modelfit.β, XX_inv, X, vcov)
+    return inference(fit.N, fit.K, fit.modelfit.resid, fit.modelfit.β, XX_inv, P_Z*X, vcov)
 end
