@@ -2,9 +2,12 @@
 struct vcovCluster <: vcov
     cluster::Matrix
     n_cluster_vars::Int64
+    ssc::String
+    # defaults to HC1 for now
     function vcovCluster(cluster::Matrix)
         n_cluster_vars = size(cluster, 2)
-        new(cluster, n_cluster_vars)
+        ssc = "HC1"
+        new(cluster, n_cluster_vars, ssc)
     end
 end
 
@@ -70,12 +73,7 @@ and Miller (2008)
 (http://cameron.econ.ucdavis.edu/research/CGM_twoway_ALL_13may2008.pdf)
 
 
-This is a very inefficient implementation since we calculate clusters 
-for all i,j and only set clusters to 0 using an indicator function after 
-calculation. This is done to closely resemble the above paper.
-
-
-It will be sped up in future.
+For now small sample correction defaults to HC1 (which is naughty).
 """
 function createBtilde(X::Matrix, 
                       resid::Vector, 
@@ -86,22 +84,28 @@ function createBtilde(X::Matrix,
     # Initialise B_r for each r in the datset.
     B_R = Vector{Matrix}(undef, length(indicators))
     for I in 1:length(indicators)
-        X_IJ = Matrix{Matrix}(undef, (N, N))
+        # Only keep cluster dimensions we care about
+        subset_cluster_matrix = cluster_matrix[:, indicators[I]]
+        # Find each unique cluster tuple/pair in the dataset 
+        unique_clusters = unique(subset_cluster_matrix, dims = 1) 
+        cluster_G_size = size(unique_clusters, 1)
+        B_G = Vector{Matrix}(undef, cluster_G_size)
+        for i in 1:size(unique_clusters, 1)
+            # iterate through each unique cluster tuple and select only Xs and
+            # resids corresponding to that cluster tuple. all(cond, dims = 2) 
+            # means we check that each ROW of the matrix meets the condition.
+            cluster_selector = all(subset_cluster_matrix .== unique_clusters[i:i, :], dims = 2)[:]
+            X_g = X[cluster_selector, :]
+            resid_g = resid[cluster_selector]
+            # Create B_G(I_r, ij) using these Xs and resids
+            B_G[i] = X_g' * resid_g * resid_g' * X_g 
+        end
+        # Create odd even inclusion adjustment
         D = length(indicators[I])
-        for i in 1:N
-            for j in 1:N 
-                indic = cluster_matrix[i, indicators[I]] == cluster_matrix[j, indicators[I]]
-                if indic == true
-                    X_IJ[i, j] = X[i, :] * X[j, :]' * resid[i] * resid[j] 
-                else
-                    X_IJ[i, j] = zeros((K, K))
-                end # end if statement for I_r(i, j)
-            end # end j loop
-        end # end i loop
-        sum_adjustment = (-1)^(D+1)
-        println("D: $D, sum_adj: $sum_adjustment")
-        B_R[I] = sum_adjustment*sum(X_IJ)
-    end # end I loop
+        small_sample_correction = (cluster_G_size/(cluster_G_size - 1))*((N - 1)/(N-K))
+        sum_adjustment = (-1)^(D+1)*small_sample_correction
+        B_R[I] = sum_adjustment*reduce(+, B_G)
+    end
     B_tilde = sum(B_R)
     return B_tilde
 end
