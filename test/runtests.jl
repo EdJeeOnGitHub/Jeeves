@@ -1,7 +1,7 @@
 using Revise, Jeeves
 using DataFrames:DataFrame
 using Test
-
+using RDatasets
 
 rtol = 0.0001
 @testset "OLS perfect fit" begin
@@ -104,7 +104,7 @@ end
 
 # Literally just testing if we get an answer at this stage lol...
 @testset "Clustered SEs Run" begin
-    N = 400   
+    N = 4000   
     cluster_var_1 = repeat(["Kentucky", "Mass", "Illinois", "Florida"], Int(N/4)) 
     cluster_var_2 = repeat(["t_1", "t_2", "t_3", "t_4", "t_5"],Int(N/5))
     cluster_var_3 = repeat(1:50, Int(N/50))
@@ -127,7 +127,6 @@ end
 
 
 @testset "Clustered SEs Match Sandwich" begin
-    using RDatasets
     PublicSchools = dropmissing(dataset("sandwich", "PublicSchools"))
     PublicSchools[!, "fake_cluster"] .= repeat(1:5, 10)
     PublicSchools[!, "const"] .= 1.0
@@ -144,7 +143,7 @@ end
     @test isapprox(0.068939, PS_coef[2], rtol = rtol)
 
     # SEs
-    # sandwich with HC0 169.594852, 0.023020 - bit off
+    # R's sandwich defaults to HC1 169.594852, 0.023020 
     @test isapprox(169.594852, PS_SE[1], rtol = rtol)
     @test isapprox(0.023020, PS_SE[2], rtol = rtol)
 end
