@@ -42,7 +42,7 @@ function TSLSModel(y::Vector,
     X_endog = Matrix(X_endog)
     X_exog = Matrix(X_exog)
     instruments = Matrix(instruments)
-    return TSLSModel(y, X_endog, X_exog, instruments, vcov, X_names)
+    return TSLSModel(y, X_endog, X_exog, instruments, vcov = vcov, X_names = X_names)
 end
 
 struct FittedTSLSModel <: LinearModelFit
