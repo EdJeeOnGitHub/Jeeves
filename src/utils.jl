@@ -78,7 +78,7 @@ function TableCol(header,
     # if we use keep, add everything to drop and remove elements in keep 
     if keep_used
         drop = deepcopy(m.X_names)
-        deleteat!(drop,  findall(drop .== keep))
+        drop = filter(e -> !(e in keep), drop)
     end
     # Add the coefficients
     for (name, val, se, p) in zip(m.X_names, coef(m), m.modelfit.se_β, m.modelfit.pval)
