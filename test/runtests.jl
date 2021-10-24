@@ -1,4 +1,4 @@
-using Revise, Jeeves
+using Jeeves
 using DataFrames:DataFrame
 using Test
 using RDatasets
