@@ -22,11 +22,25 @@ function inference(N::Int,
     σ_sq = sum(resid.^2) / (N - K)
     vcov_matrix = XX_inv * σ_sq
     se = sqrt.(diag(vcov_matrix)) 
-    pval = 2 .* cdf.(TDist(N - K), -abs.(β ./ se))   
+    pval = 2 .* cdf.(TDist(N - K), -abs.(β ./ se))  
+    
     return se, pval, σ_sq, vcov_matrix
 end
 
 
+function Ftest(fit_obj::LinearModelFit; signif_level = 0.05)
+    resid = fit_obj.modelfit.resid
+    RSS_1 = sum((fit_obj.y .- mean(fit_obj.y)).^2)
+    RSS_2 = sum(resid.^2)
+    K = fit_obj.K
+    N = fit_obj.N
+    F = ((RSS_1 - RSS_2)/(K - 1)) / ((RSS_2)/(N-K))
+    F_CV = quantile(FDist(K - 1, N - K), 1 - signif_level)
+    reject = F > F_CV
+    return F, F_CV, reject
+end
+
+    
 
 # Now we just use method dispatch to call the necessary inference function 
 # whilst also handling different ways of passing arguments to inference.
