@@ -1,3 +1,4 @@
+using Revise
 using Jeeves
 using DataFrames:DataFrame
 using Test
@@ -69,17 +70,26 @@ end
     confounder = randn(N)
     X_exog = randn(N, 3)
     X_beta = [1; 2; 3]
-    Z = randn(N, 1)
-    X_endog = randn(N, 1) .+ confounder .+ Z
-    Y = X_exog * X_beta + X_endog + confounder + randn(N, 1)
+    β_endog = [0; 0]
+    Z = randn(N, 2)
+    X_endog = randn(N, 2) .+ confounder .+ Z
+    Y = X_exog * X_beta + X_endog*β_endog + confounder + randn(N, 1)
     IV_model = Jeeves.TSLSModel(Y[:], X_endog, X_exog, Z)
     IV_fit = fit(IV_model)
     separate_inference = Jeeves.inference(IV_fit, vcovIID())
     model_coefs = coef(IV_fit)
     @test isapprox(model_coefs[1], 1, rtol = 1e-1)
-    @test isapprox(model_coefs[2], 1, rtol = 1e-1)
-    @test isapprox(model_coefs[3], 2, rtol = 1e-1)
-    @test isapprox(model_coefs[4], 3, rtol = 1e-1)
+    @test isapprox(model_coefs[2], -1, rtol = 1e-1)
+    @test isapprox(model_coefs[3], 1, rtol = 1e-1)
+    @test isapprox(model_coefs[4], 2, rtol = 1e-1)
+    @test isapprox(model_coefs[5], 3, rtol = 1e-1)
+
+
+    # Testing AndersonRubinCI returns results
+    β_grid = Iterators.product(-1.:0.5:0., -1.:0.5:0.)
+    AR_test = Jeeves.AndersonRubinCI(β_grid, IV_fit)
+    @test size(AR_test, 1) == 9
+    @test size(AR_test[1], 1) == 5
 end
 
 # Kinda hard to test these functions.
