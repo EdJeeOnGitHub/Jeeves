@@ -29,9 +29,9 @@ end
 
 
 function Ftest(fit_obj::LinearModelFit; signif_level = 0.05)
-    resid = fit_obj.modelfit.resid
+    resid_2 = fit_obj.modelfit.resid
     RSS_1 = sum((fit_obj.y .- mean(fit_obj.y)).^2)
-    RSS_2 = sum(resid.^2)
+    RSS_2 = sum(resid_2.^2)
     K = fit_obj.K
     N = fit_obj.N
     F = ((RSS_1 - RSS_2)/(K - 1)) / ((RSS_2)/(N-K))
@@ -40,6 +40,22 @@ function Ftest(fit_obj::LinearModelFit; signif_level = 0.05)
     return F, F_CV, reject
 end
 
+# TODO copy code less here
+function Ftest(fit_obj::LinearModelFit, 
+               restricted_fit_obj::LinearModelFit; 
+               signif_level = 0.05)
+    resid_2 = fit_obj.modelfit.resid
+    resid_1 = restricted_fit_obj.modelfit.resid
+    RSS_1 = sum(resid_1.^2)
+    RSS_2 = sum(resid_2.^2)
+    K_2 = fit_obj.K
+    K_1 = restricted_fit_obj.K
+    N = fit_obj.N
+    F = ((RSS_1 - RSS_2)/(K_2 - K_1)) / ((RSS_2)/(N-K_2))
+    F_CV = quantile(FDist(K_2 - K_1, N - K_2), 1 - signif_level)
+    reject = F > F_CV
+    return F, F_CV, reject
+end
     
 
 # Now we just use method dispatch to call the necessary inference function 

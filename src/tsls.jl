@@ -104,22 +104,28 @@ function fit(model::TSLSModel)
 end
 
 
-
+# TODO: regress on instrument and exog additional_controls
+# F test on instrument coefs only
 
 function AndersonRubinCI!(β_AR, 
                           fit_obj::Jeeves.FittedTSLSModel;
                           additional_controls = nothing,
                           signif_level = 0.05)
+    K_instrument = fit_obj.K_instrument
     K_endog = fit_obj.K_endog
-    X_exog = fit_obj.X[:, (K_endog + 1):end]
     X_endog = fit_obj.X[:, 1:K_endog]
+    X_exog_only = fit_obj.Z[:, (K_instrument + 1):end]
+    X_exog = fit_obj.Z
     AR_resid = fit_obj.y - X_endog*β_AR  
     if !isnothing(additional_controls)
-        X_exog = hcat(X_exog, additional_controls)
+        X_exog = hcat(fit_obj.Z, additional_controls)
+        X_exog_only = hcat(X_exog_only, additional_controls)
     end
     AR_model = OLSModel(AR_resid, X_exog, vcov = fit_obj.vcov)
+    restricted_AR_model = OLSModel(AR_resid, X_exog_only, vcov = fit_obj.vcov)
     AR_fit = fit(AR_model)
-    AR_F_vals = Ftest(AR_fit, signif_level = signif_level)
+    restricted_AR_fit = fit(restricted_AR_model) 
+    AR_F_vals = Ftest(AR_fit, restricted_AR_fit, signif_level = signif_level)
     return [β_AR..., AR_F_vals...]
 end
 
