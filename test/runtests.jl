@@ -63,9 +63,7 @@ rtol = 0.0001
     @test isapprox(model_coefs[5], β[5], rtol = rtol)
 end
 
-
-
-@testset "TSLS works" begin
+@testset "TSLS and Anderson Rubin works" begin
     N = 10_000
     confounder = randn(N)
     X_exog = randn(N, 3)
@@ -90,6 +88,30 @@ end
     AR_test = Jeeves.AndersonRubinCI(β_grid, IV_fit)
     @test size(AR_test, 1) == 9
     @test size(AR_test[1], 1) == 5
+end
+
+@testset "JIVE works" begin
+    N = 10_000
+    confounder = randn(N)
+    X_exog = randn(N, 3)
+    X_beta = [1; 2; 3]
+    β_endog = [1; -1]
+    Z = randn(N, 2)
+    X_endog = randn(N, 2) .+ confounder .+ Z
+    Y = X_exog * X_beta + X_endog*β_endog + confounder + randn(N, 1)
+    IV_model = Jeeves.TSLSModel(Y[:], X_endog, X_exog, Z)
+    JIVE_fit = Jeeves.jive(IV_model)
+
+    JIVE_fit.modelfit.se_β
+
+    separate_inference = Jeeves.inference(JIVE_fit, vcovIID())
+    @test isequal(JIVE_fit.modelfit.se_β, separate_inference[1])
+    model_coefs = coef(JIVE_fit)
+    @test isapprox(model_coefs[1], 1, rtol = 1e-1)
+    @test isapprox(model_coefs[2], -1, rtol = 1e-1)
+    @test isapprox(model_coefs[3], 1, rtol = 1e-1)
+    @test isapprox(model_coefs[4], 2, rtol = 1e-1)
+    @test isapprox(model_coefs[5], 3, rtol = 1e-1)
 end
 
 # Kinda hard to test these functions.
