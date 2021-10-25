@@ -67,7 +67,7 @@ end
     confounder = randn(N)
     X_exog = randn(N, 3)
     X_beta = [1; 2; 3]
-    β_endog = [0; 0]
+    β_endog = [1; -1]
     Z = randn(N, 2)
     X_endog = randn(N, 2) .+ confounder .+ Z
     Y = X_exog * X_beta + X_endog*β_endog + confounder + randn(N, 1)
