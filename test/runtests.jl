@@ -166,7 +166,9 @@ end
     model = Jeeves.OLSModel(y[:], X)
     model_fit = fit(model)
     SEs = Jeeves.inference(model_fit, Jeeves.vcovCluster(cluster_matrix))
+    SEs_single_cluster = Jeeves.inference(model_fit, Jeeves.vcovCluster(cluster_matrix[:, 1:1]))
     @test typeof(SEs[1]) == Vector{Float64}
+    @test typeof(SEs_single_cluster[1]) == Vector{Float64}
 end
 
 
