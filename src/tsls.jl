@@ -11,6 +11,9 @@ struct TSLSModel <: LinearModel
     X_names::Vector
     N::Int64
     K::Int64
+    K_endog::Int64
+    K_exog::Int64
+    K_instrument::Int64
     function TSLSModel(y::Vector, 
                        X_endog::Matrix, 
                        X_exog::Matrix, 
@@ -22,13 +25,16 @@ struct TSLSModel <: LinearModel
         X = hcat(X_endog, X_exog)
         Q_Z, R_Z = qr(Z)
         K = size(X, 2)
+        K_endog = size(X_endog, 2)
+        K_exog = size(X_exog, 2)
+        K_instrument = size(instruments, 2)
         if isnothing(X_names)
             X_names = vcat(
                 "x_endog_" .* string.(1:size(X_endog, 2)),
                 "x_exog_" .* string.(1:size(X_exog, 2))
             )
         end
-        new(y, X, Z, Q_Z, R_Z, vcov, X_names, N, K) 
+        new(y, X, Z, Q_Z, R_Z, vcov, X_names, N, K, K_endog, K_exog, K_instrument) 
     end
 end
 
@@ -55,6 +61,9 @@ struct FittedTSLSModel <: LinearModelFit
     X_names::Vector
     N::Int64
     K::Int64
+    K_endog::Int64
+    K_exog::Int64
+    K_instrument::Int64
     modelfit::FitOutput
     P_Z::Matrix
 end
@@ -87,6 +96,47 @@ function fit(model::TSLSModel)
         model.X_names,
         model.N,
         model.K,
+        model.K_endog,
+        model.K_exog,
+        model.K_instrument,
         fit!(model)...
     )
+end
+
+
+
+
+function AndersonRubinCI!(β_AR, 
+                          fit_obj::Jeeves.FittedTSLSModel;
+                          additional_controls = nothing,
+                          signif_level = 0.05)
+    K_endog = fit_obj.K_endog
+    X_exog = fit_obj.X[:, (K_endog + 1):end]
+    X_endog = fit_obj.X[:, 1:K_endog]
+    AR_resid = fit_obj.y - X_endog*β_AR  
+    if !isnothing(additional_controls)
+        X_exog = hcat(X_exog, additional_controls)
+    end
+    AR_model = OLSModel(AR_resid, X_exog, vcov = fit_obj.vcov)
+    AR_fit = fit(AR_model)
+    AR_F_vals = Ftest(AR_fit, signif_level = signif_level)
+    return [β_AR..., AR_F_vals...]
+end
+
+
+
+function AndersonRubinCI(β_grid, fit_obj::FittedTSLSModel; additional_controls = nothing)
+    β_grid = collect(β_grid)
+    K_endog = fit_obj.K_endog
+    K_β =  length(β_grid[1])
+    K_β == K_endog || error("Grid dimension doesn't match K_endog")
+    AR_results = Vector(undef, length(β_grid)) 
+    for i in 1:length(β_grid)
+        AR_results[i] = AndersonRubinCI!(
+            [β_grid[i]...], 
+            fit_obj, 
+            additional_controls = additional_controls)
+    end
+    
+    return AR_results
 end
