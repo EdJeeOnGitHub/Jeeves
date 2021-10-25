@@ -112,6 +112,20 @@ end
 end
 
 
+
+@testset "F-test matches t-stat squared" begin
+    X = hcat(repeat([1.0], 1_000), rand(1_000, 1))
+    β = [1, 5]
+    y =  X*β + randn(1_000)
+    model = Jeeves.OLSModel(y, X)    
+    ols_fit = fit(model)
+    tidy_fit = tidy(ols_fit)
+    F_stat, _, _ = Jeeves.Ftest(ols_fit)
+    t_stat_sq = tidy_fit[2, "t_stat"]^2
+
+    @test isapprox(F_stat, t_stat_sq)
+end    
+
 # Literally just testing if we get an answer at this stage lol...
 @testset "Clustered SEs Run" begin
     N = 4000   
