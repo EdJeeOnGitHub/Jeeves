@@ -10,7 +10,7 @@ function summary(model::Fit)
 end
 
 nobs(m::LinearModelFit) = m.N
-r2(m::LinearModelFit) = "."
+r2(m::LinearModelFit) = 1 - sum(m.modelfit.resid.^2)/(sum(m.y.^2))
 """
     coef(model::Fit)
 For now just returns β coefs.
