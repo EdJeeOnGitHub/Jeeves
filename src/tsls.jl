@@ -1,5 +1,3 @@
-# I was in a rush okay because I rewrote OLS and SEs 3 times making 
-# these beautiful hierarchies.
 
 struct TSLSModel <: LinearModel
     y::Vector # outcome variable
@@ -68,6 +66,24 @@ struct FittedTSLSModel <: LinearModelFit
     P_Z::Matrix
 end
 
+struct FittedJIVEModel <:LinearModelFit
+    y::Vector # outcome variable
+    X::Matrix # Second stage variables (endog + exog)
+    Z::Matrix # First stage variables (instrument + exog)
+    Q::Matrix
+    R::Matrix
+    vcov::vcov
+    X_names::Vector
+    N::Int64
+    K::Int64
+    K_endog::Int64
+    K_exog::Int64
+    K_instrument::Int64
+    modelfit::FitOutput
+    P_Z::Matrix
+    X_jive::Matrix
+end
+
 
 function fit!(model::TSLSModel)
     y = model.y
@@ -104,8 +120,6 @@ function fit(model::TSLSModel)
 end
 
 
-# TODO: regress on instrument and exog additional_controls
-# F test on instrument coefs only
 
 function AndersonRubinCI!(β_AR, 
                           fit_obj::Jeeves.FittedTSLSModel;
@@ -143,6 +157,49 @@ function AndersonRubinCI(β_grid, fit_obj::FittedTSLSModel; additional_controls 
             fit_obj, 
             additional_controls = additional_controls)
     end
-    
     return AR_results
+end
+
+
+function jive!(model::TSLSModel)
+    y = model.y
+    X = model.X
+    Z = model.Z
+    R = model.R_Z
+    ZZ_inv = inv(cholesky(R' * R))
+    P_Z = Z * ZZ_inv * Z'
+    h_i = diag(P_Z)
+    π = ZZ_inv * (Z' * X)
+    X_jive = (Z * π - h_i .* X)./(1 .- h_i)
+    XX_inv = inv(X_jive' * X)
+    β = XX_inv * (X_jive' * y)
+    resid = y - X*β
+
+    se_β, pval, σ_sq, vcov_matrix = inference(model.N, 
+                                              model.K, 
+                                              resid, 
+                                              β, 
+                                              XX_inv, 
+                                              X_jive, 
+                                              model.vcov)
+    return FitOutput(β, se_β, pval, resid, σ_sq, vcov_matrix), P_Z, X_jive
+end
+
+
+function jive(model::TSLSModel)
+    FittedJIVEModel(
+        model.y,
+        model.X,
+        model.Z,
+        model.Q_Z,
+        model.R_Z,
+        model.vcov,
+        model.X_names,
+        model.N,
+        model.K,
+        model.K_endog,
+        model.K_exog,
+        model.K_instrument,
+        jive!(model)...
+    )
 end

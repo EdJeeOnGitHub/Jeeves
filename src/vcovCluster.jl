@@ -34,13 +34,6 @@ function findsinglecluster(cluster_var::Vector, X::Matrix, resid::Vector)
 end
 
 
-function findclusterid(cluster_var)
-    cluster_id_dict = Dict(unique(cluster_var) .=> 1:length(unique(cluster_var)))
-    cluster_id = getindex.(Ref(cluster_id_dict), cluster_var)
-    return cluster_id
-end
-
-
 I_R(R) = findall(R .== 1)
 """
     createRset(cluster_obj::vcovCluster)

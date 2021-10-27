@@ -110,3 +110,10 @@ function inference(fit::FittedTSLSModel, vcov::vcov)
     XX_inv =  inv(X' * P_Z * X)
     return inference(fit.N, fit.K, fit.modelfit.resid, fit.modelfit.β, XX_inv, P_Z*X, vcov)
 end
+
+function inference(fit::FittedJIVEModel, vcov::vcov)
+    X_jive = fit.X_jive
+    X = fit.X
+    XX_inv =  inv(X_jive' * X)
+    return inference(fit.N, fit.K, fit.modelfit.resid, fit.modelfit.β, XX_inv, X_jive, vcov)
+end
