@@ -1,6 +1,12 @@
 struct vcovIID <: vcov
 end
 
+
+
+"""
+##### Inference using primitives #####
+"""
+
 """
     inference(N, K, resid, β, XX_inv, vcov)
 
@@ -58,6 +64,11 @@ function Ftest(fit_obj::LinearModelFit,
 end
     
 
+
+"""
+##### Inference using models #####
+"""
+
 # Now we just use method dispatch to call the necessary inference function 
 # whilst also handling different ways of passing arguments to inference.
 
@@ -81,16 +92,6 @@ end
 
 
 """
-OLS inference using fitted model to pass arguments to above function
-"""
-function inference(fit::FittedOLSModel, vcov::vcov)
-    resid = fit.modelfit.resid
-    β = fit.modelfit.β
-    return return inference(resid, β, fit, vcov) 
-end
-
-
-"""
 TSLS inference passing X ' P_Z X to meat matrix.
 """
 function inference(resid::Vector, 
@@ -101,6 +102,20 @@ function inference(resid::Vector,
     XX_inv =  inv(X' * P_Z * X)
     return inference(fit.N, fit.K, resid, β, XX_inv, P_Z*X, vcov)
 end
+
+"""
+##### Inference using fitted models #####
+"""
+
+"""
+OLS inference using fitted model to pass arguments to above function
+"""
+function inference(fit::FittedOLSModel, vcov::vcov)
+    resid = fit.modelfit.resid
+    β = fit.modelfit.β
+    return return inference(resid, β, fit, vcov) 
+end
+
 """
 TSLS using fitted model
 """
