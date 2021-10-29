@@ -80,7 +80,7 @@ inference taking β and resid as arguments
 """
 function inference(resid::Vector,
                    β::Vector, # todo change type to OLS?
-                   fit::Union{LinearModel,LinearModelFit}, 
+                   fit::OLSModel, 
                    vcov::vcov)
     R = fit.R
     N = fit.N
