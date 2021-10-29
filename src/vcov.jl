@@ -1,7 +1,7 @@
 struct vcovIID <: vcov
 end
 
-
+# TODO, move vcov specific info into vcov struct so we can just dispatch on that
 
 """
 ##### Inference using primitives #####
@@ -113,7 +113,9 @@ OLS inference using fitted model to pass arguments to above function
 function inference(fit::FittedOLSModel, vcov::vcov)
     resid = fit.modelfit.resid
     β = fit.modelfit.β
-    return return inference(resid, β, fit, vcov) 
+    R = fit.R
+    XX_inv = inv(cholesky(R' * R))
+    return return inference(fit.N, fit.K, resid, β, XX_inv, fit.X, vcov)
 end
 
 """

@@ -15,13 +15,23 @@ module Jeeves
     export vcovIID, vcovCluster
 
     ## Types ##
-    abstract type Model end
-    abstract type LinearModel <: Model  end
-    abstract type GeneralisedLinearModel <: Model end
+    """
+    `F <: ModelFit` specifies whether the model describes a target 
+    estimand or a fitted model with sampling variance describing an 
+    estimator.
+    """
+    abstract type ModelFit end
+    struct Estimator <: ModelFit end
+    struct Estimand <: ModelFit end
 
 
-    abstract type Fit <: Model end
-    abstract type LinearModelFit <: Fit end
+    abstract type ModelType end
+    abstract type LinearModel <: ModelType  end
+    abstract type GeneralisedLinearModel <: ModelType end
+
+    abstract type Model{M<:ModelType, F<:ModelFit} end
+
+
 
 
     abstract type vcov end

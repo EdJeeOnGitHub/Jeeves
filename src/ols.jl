@@ -26,7 +26,7 @@ Object describing data and variance covariance matrix to be computed using an
 Ordinary Least Squares Model. Q, R are the QR decomposition pre-calculated and 
 carried around by OLSModel.
 """
-struct OLSModel <: LinearModel
+struct OLSModel <: Model{}
     y::Vector
     X::Matrix
     vcov::vcov
