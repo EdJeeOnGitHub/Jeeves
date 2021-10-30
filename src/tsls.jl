@@ -19,13 +19,19 @@ struct TSLSModel <: LinearModel
                        vcov::vcov = vcovIID(),
                        X_names = nothing)
         N = length(y)
-        Z = hcat(instruments, X_exog)
-        X = hcat(X_endog, X_exog)
-        Q_Z, R_Z = qr(Z)
-        K = size(X, 2)
         K_endog = size(X_endog, 2)
         K_exog = size(X_exog, 2)
         K_instrument = size(instruments, 2)
+        # If only one column of 0s we drop the exog vars
+        if K_exog == 1 & all(X_exog[:, 1] .== 0.0)
+            Z = instruments
+            X = X_endog
+        else
+            Z = hcat(instruments, X_exog)
+            X = hcat(X_endog, X_exog)
+        end
+        Q_Z, R_Z = qr(Z)
+        K = size(X, 2)
         if isnothing(X_names)
             X_names = vcat(
                 "x_endog_" .* string.(1:size(X_endog, 2)),
@@ -48,7 +54,6 @@ function TSLSModel(y::Vector,
     instruments = Matrix(instruments)
     return TSLSModel(y, X_endog, X_exog, instruments, vcov = vcov, X_names = X_names)
 end
-
 struct FittedTSLSModel <: LinearModelFit
     y::Vector # outcome variable
     X::Matrix # Second stage variables (endog + exog)
