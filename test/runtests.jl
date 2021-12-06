@@ -171,7 +171,18 @@ end
     @test typeof(SEs_single_cluster[1]) == Vector{Float64}
 end
 
+@testset "Hetero SEs run" begin
+    N = 1000  
+    X = randn(N, 5)
+    ϵ = randn(N, 1)
+    β = [1, 2, 3, 4, 5]
+    y = X * β    + ϵ
 
+    model = Jeeves.OLSModel(y[:], X)
+    model_fit = fit(model)
+    SEs = Jeeves.inference(model_fit, Jeeves.vcovHetero())
+    @test typeof(SEs[1]) == Vector{Float64}
+end
 
 @testset "Clustered SEs Match Sandwich" begin
     PublicSchools = dropmissing(dataset("sandwich", "PublicSchools"))
