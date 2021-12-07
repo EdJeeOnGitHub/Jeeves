@@ -80,7 +80,7 @@ function inference(N::Int,
     pval_upper = (1/B) .* sum(t_b' .> t_r, dims = 2)
     pval = 2 .*  minimum(hcat(pval_lower, pval_upper), dims = 2)
 
-    return mean(se_b_vec, dims = 1)[:], pval, σ_sq_r, vcov_matrix_r
+    return mean(se_b_vec, dims = 1)[:], pval[:], σ_sq_r, vcov_matrix_r
 end
 
 
