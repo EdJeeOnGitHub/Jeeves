@@ -4,6 +4,7 @@ using Test
 using RDatasets
 
 rtol = 0.0001
+
 @testset "OLS perfect fit" begin
     X = rand(1_000, 5)
     β = [ 1; 2; 3; 4; 5]
@@ -220,13 +221,17 @@ end
     model = Jeeves.OLSModel(y[:], X)
     model_fit = fit(model)
     Jeeves.inference(model_fit, Jeeves.vcovBoot(1, cluster_var[:,:]))
-    SEs_boot = Jeeves.inference(model_fit, Jeeves.vcovBoot(500, cluster_var[:,:]))
+    SEs_boot = Jeeves.inference(model_fit, Jeeves.vcovBoot(1000, cluster_var[:,:]))
     SEs = Jeeves.inference(model_fit, Jeeves.vcovIID())
     SE_comp = hcat(SEs[1], SEs_boot[1])
 
     @test typeof(SEs_boot[1]) == Vector{Float64}
+    # SEs match
     for i in 1:5
         @test isapprox(SE_comp[i, 1], SE_comp[i, 2], atol = 0.05)
     end
+    # Pvals match
+    for i in 1:5
+        @test isapprox(SEs[2][i], SEs_boot[2][i], atol = 0.05)
+    end
 end
-
