@@ -2,12 +2,13 @@ struct vcovBoot <: vcov
     B::Int64
     cluster::Matrix
     n_cluster_vars::Int64
-    function vcovBoot(B::Int64, cluster::Matrix)
+    β_0::Vector
+    function vcovBoot(B::Int64, cluster::Matrix; β_0 = [0.0])
         n_cluster_vars = size(cluster, 2)
         if n_cluster_vars > 2
             error("Only support one bootstrapped cluster.")
         end
-            new(B, cluster, n_cluster_vars)
+        new(B, cluster, n_cluster_vars, β_0)
     end
 end
 
@@ -34,6 +35,10 @@ function inference(N::Int,
         error("Only support one clustered variable Bootstrap atm")
     end
     B = vcov.B
+    β_0 = vcov.β_0
+    if length(β_0) != K && length(β_0) == 1
+        β_0 = fill(β_0[1], K)
+    end
     cluster_vals = vcov.cluster[:, 1]
     unique_clusters = unique(cluster_vals)
     n_clusters = length(unique_clusters)
@@ -55,7 +60,7 @@ function inference(N::Int,
         X,
         vcovCluster(vcov.cluster)
     )
-    t_r = β ./ se_r
+    t_r = (β .- β_0) ./ se_r
     B = vcov.B
     t_b = Matrix{Float64}(undef, (B, K))
     se_b_vec = similar(t_b)
@@ -72,14 +77,12 @@ function inference(N::Int,
             X,
             vcovCluster(vcov.cluster)
         )
-        t_b[i, :] = β_b ./ se_b
+        t_b[i, :] = (β_b .- β) ./ se_b
         se_b_vec[i, :] = se_b
     end
-
-    pval_lower = (1/B) .* sum(t_b' .< t_r, dims = 2)
-    pval_upper = (1/B) .* sum(t_b' .> t_r, dims = 2)
+    pval_lower = (1/B) .* sum(t_b' .> t_r, dims = 2)
+    pval_upper = (1/B) .* sum(t_b' .< t_r, dims = 2)
     pval = 2 .*  minimum(hcat(pval_lower, pval_upper), dims = 2)
-
     return mean(se_b_vec, dims = 1)[:], pval[:], σ_sq_r, vcov_matrix_r
 end
 
