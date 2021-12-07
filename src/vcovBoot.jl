@@ -80,10 +80,9 @@ function inference(N::Int,
         t_b[i, :] = (β_b .- β) ./ se_b
         se_b_vec[i, :] = se_b
     end
-    # pval_lower = (1/B) .* sum(t_b' .> t_r, dims = 2)
-    # pval_upper = (1/B) .* sum(t_b' .< t_r, dims = 2)
-    # pval = 2 .*  minimum(hcat(pval_lower, pval_upper), dims = 2)
-    pval = (1/B) .* sum(abs.(t_r) .< abs.(t_b'), dims = 2)
+    pval_lower = (1/B) .* sum(t_b' .> t_r, dims = 2)
+    pval_upper = (1/B) .* sum(t_b' .< t_r, dims = 2)
+    pval = 2 .*  minimum(hcat(pval_lower, pval_upper), dims = 2)
     return mean(se_b_vec, dims = 1)[:], pval[:], σ_sq_r, vcov_matrix_r
 end
 
