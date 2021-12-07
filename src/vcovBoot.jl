@@ -2,8 +2,8 @@ struct vcovBoot <: vcov
     B::Int64
     cluster::Matrix
     n_cluster_vars::Int64
-    β_0::Vector
-    function vcovBoot(B::Int64, cluster::Matrix; β_0 = [0.0])
+    β_0::Float64
+    function vcovBoot(B::Int64, cluster::Matrix; β_0 = 0.0)
         n_cluster_vars = size(cluster, 2)
         if n_cluster_vars > 2
             error("Only support one bootstrapped cluster.")
@@ -36,9 +36,9 @@ function inference(N::Int,
     end
     B = vcov.B
     β_0 = vcov.β_0
-    if length(β_0) != K && length(β_0) == 1
-        β_0 = fill(β_0[1], K)
-    end
+    # if length(β_0) != K && length(β_0) == 1
+    #     β_0 = fill(β_0[1], K)
+    # end
     cluster_vals = vcov.cluster[:, 1]
     unique_clusters = unique(cluster_vals)
     n_clusters = length(unique_clusters)
