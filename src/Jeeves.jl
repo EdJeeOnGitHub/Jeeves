@@ -12,7 +12,7 @@ module Jeeves
     export summary
     export tidy
 
-    export vcovIID, vcovCluster, vcovHetero
+    export vcovIID, vcovCluster, vcovHetero, vcovBoot
 
     ## Types ##
     abstract type Model end
@@ -34,5 +34,6 @@ module Jeeves
     include("vcov.jl")
     include("vcovCluster.jl")
     include("vcovHetero.jl")
+    include("vcovBoot.jl")
     include("utils.jl")
 end # module

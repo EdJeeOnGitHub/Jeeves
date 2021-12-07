@@ -57,8 +57,8 @@ function inference(N::Int,
     )
     t_r = β ./ se_r
     B = vcov.B
-    t_b = Vector{Vector{Float64}}(undef, B)
-    se_b_vec = Vector{Vector{Float64}}(undef, B)
+    t_b = Matrix{Float64}(undef, (B, K))
+    se_b_vec = similar(t_b)
     for i in 1:B
         resid_b = resid .* radm_matrix[cluster_ids, i] 
         y_b = X * β .+ resid_b
@@ -72,60 +72,15 @@ function inference(N::Int,
             X,
             vcovCluster(vcov.cluster)
         )
-        t_b[i] = β_b ./ se_b
-        se_b_vec[i] = se_b
+        t_b[i, :] = β_b ./ se_b
+        se_b_vec[i, :] = se_b
     end
-    pval_lower = (1/B) .* sum(t_b .< t_r, dims = 2)
-    pval_upper = (1/B) .* sum(t_b .> t_r, dims = 2)
-    pval = minimum.(pval_lower, pval_upper)
 
-    return mean(se_b_vec, dims = 2), pval, σ_sq_r, vcov_matrix_r
+    pval_lower = (1/B) .* sum(t_b' .< t_r, dims = 2)
+    pval_upper = (1/B) .* sum(t_b' .> t_r, dims = 2)
+    pval = 2 .*  minimum(hcat(pval_lower, pval_upper), dims = 2)
+
+    return mean(se_b_vec, dims = 1)[:], pval, σ_sq_r, vcov_matrix_r
 end
 
 
-
-# function getbootindices(vcov::vcovBoot)
-#     cluster_vals = vcov.cluster[:, 1]
-#     unique_cluster_vals = unique(vcov.cluster)
-#     N_clusters = length(unique_cluster_vals)
-
-#     new_clusters = sample(
-#         unique_cluster_vals, 
-#         length(unique_cluster_vals), 
-#         replace = true)
-#     boot_indices = Vector{Vector{Int64}}(undef, N_clusters)
-#     for i in 1:N_clusters
-#         boot_indices[i] = findall(x -> x == new_clusters[i], cluster_vals ) 
-#     end
-#     boot_indices = reduce(vcat, boot_indices)
-#     return boot_indices
-# end
-
-
-
-
-
-# using StatsBase
-# X = randn(20, 2)
-# cl = sample(["a", "b", "c", "d", "e"], 20, replace = true)
-
-
-# cluster_vals = cl
-# unique_clusters = unique(cl)
-# n_clusters = length(unique_clusters)
-# cluster_indices = Vector{Vector{Int64}}(undef, n_clusters)
-
-# contiguous_ids = Dict( unique(jj) .=> 1:length(unique(jj))  )
-# jj .= getindex.(Ref(contiguous_ids),jj);
-
-
-# index_ids = Dict(unique_clusters .=> 1:n_clusters)
-# cluster_vals_2 = getindex.(Ref(index_ids), cluster_vals)
-
-# cluster_vals
-# unique_clusters
-# findall(x -> x == unique_clusters[1], cluster_vals)
-# for i in 1:n_clusters
-#     cluster_indices[i] = findall(x -> x == unique_clusters[i], unique_clusters)
-# end
-#     cluster_indices = reduce(vcat, cluster_indices)

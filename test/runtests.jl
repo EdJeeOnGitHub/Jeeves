@@ -205,3 +205,27 @@ end
     @test isapprox(169.594852, PS_SE[1], rtol = rtol)
     @test isapprox(0.023020, PS_SE[2], rtol = rtol)
 end
+
+@testset "Boot SEs Roughly Match Homo" begin
+    N = 4000   
+    cluster_var = repeat(1:50, Int(N/50))
+
+    using Random
+
+    X = randn(N, 5)
+    ϵ = randn(N, 1)
+    β = [1, 2, 3, 4, 5]
+    y = X * β    + ϵ
+
+    model = Jeeves.OLSModel(y[:], X)
+    model_fit = fit(model)
+    Jeeves.inference(model_fit, Jeeves.vcovBoot(1, cluster_var[:,:]))
+    SEs_boot = Jeeves.inference(model_fit, Jeeves.vcovBoot(1000, cluster_var[:,:]))
+    SEs = Jeeves.inference(model_fit, Jeeves.vcovIID())
+
+    SE_comp = hcat(SEs[1], SEs_boot[1])
+    @test typeof(SEs_boot[1]) == Vector{Float64}
+    for i in 2:5
+        @test isapprox(SE_comp[i, 1], SE_comp[i, 2], atol = 0.05)
+    end
+end
