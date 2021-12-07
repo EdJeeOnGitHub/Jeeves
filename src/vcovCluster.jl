@@ -26,7 +26,7 @@ function findsinglecluster(cluster_var::Vector, X::Matrix, resid::Vector)
         cluster_index = findall(cluster_var .== unique_clusters[i])
         X_cl = X[cluster_index, :]
         resid_cl = resid[cluster_index, :]
-        B_cl = X_cl' * resid_cl * resid_cl' * X_cl
+        B_cl = (X_cl' * resid_cl) * (resid_cl' * X_cl)
         B_clusters[i] = B_cl*dof_adjustment
     end
     B_hat = reduce(+, B_clusters)
@@ -91,7 +91,7 @@ function createBtilde(X::Matrix,
             X_g = X[cluster_selector, :]
             resid_g = resid[cluster_selector]
             # Create B_G(I_r, ij) using these Xs and resids
-            B_G[i] = X_g' * resid_g * resid_g' * X_g 
+            B_G[i] = (X_g' * resid_g) * (resid_g' * X_g) 
         end
         # Create odd even inclusion adjustment
         D = length(indicators[I])
